@@ -1,4 +1,4 @@
-# Auth Service
+# Wallet Service
 
 ## installation
 1- install packages by running

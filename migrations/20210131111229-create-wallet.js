@@ -13,12 +13,12 @@ module.exports = {
         allowNull: false
       },
       available_balance: {
-        type: Sequelize.INTEGER.UNSIGNED,
+        type: Sequelize.FLOAT.UNSIGNED,
         defaultValue: 0,
         allowNull: false
       },
       blocked_balance: {
-        type: Sequelize.INTEGER.UNSIGNED,
+        type: Sequelize.FLOAT.UNSIGNED,
         defaultValue: 0,
         allowNull: false
       },
@@ -27,7 +27,14 @@ module.exports = {
         defaultValue: 0,
         allowNull: false
       }
-    }).then(() => queryInterface.addIndex('Wallets', ['student_id']) );
+    }, {
+      uniqueKeys: {
+        unique_tag: {
+          customIndex: true,
+          fields: ["student_id"]
+        }
+      }
+    });
   },
   down: async (queryInterface, Sequelize) => {
     await queryInterface.dropTable('Wallets');

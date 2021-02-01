@@ -1,10 +1,20 @@
 const Joi = require('joi');
 
-const authSchema = Joi.object({
-  email: Joi.string().email().lowercase().required(),
-  password: Joi.string().min(6).required(),
+const createWalletSchema = Joi.object({
+  student_id: Joi.string().required()
+});
+
+const checkBalanceSchema = Joi.object({
+  balance: Joi.number().greater(0).required()
+});
+
+const depositWithdrawSchema = Joi.object({
+  amount: Joi.number().greater(0).required(),
+  other_id: Joi.number().greater(0).required()
 });
 
 module.exports = {
-  authSchema,
+  createWalletSchema,
+  checkBalanceSchema,
+  depositWithdrawSchema
 }

@@ -23,7 +23,7 @@ module.exports = {
         allowNull: false
       },
       reward_point: {
-        type: Sequelize.INTEGER.UNSIGNED,
+        type: Sequelize.FLOAT.UNSIGNED,
         defaultValue: 0,
         allowNull: false
       }

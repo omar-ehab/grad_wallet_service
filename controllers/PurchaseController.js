@@ -1,34 +1,48 @@
 const createError = require('http-errors');
 const db = require("../models");
-const wallet = db.Wallet;
+const Wallet = db.Wallet;
+const pointHelper=require('../helpers/points_helper')
+const {depositWithdrawSchema } = require('../helpers/validation_schema')
+
+// const {calculatePoints,updatePoints}=require('../helpers/points_helper')
 
 //calculate reward points 
 
-exports.calculatePoints = async (req, res) => {
+exports.purchase = async (req, res,next) => {
 
 
-    const amount = req.body.amount;
-    const ratio = 0.1;
-    //find wallet (by studentID)
-    // calculate amont * ratio then update wallet
+    try {
+        const result = await depositWithdrawSchema.validateAsync(req.body);
+        const wallet = await Wallet.findOne({ where: { student_id: req.params.student_id } });
+        if(!wallet)
+          throw createError.NotFound('Wallet Not Found');
+    
+        if(wallet.checkBalance(result.amount)) {
+            //await confirmation
+          const t = await db.sequelize.transaction();
+          //await mohemaa because js is async 
+          await wallet.withdraw(result.amount, t);
+        
+        await pointHelper.updatePoints(wallet,result.amount,t);
+            //deposit to market
 
-    const wallet = await db.Wallet.findOne({ where: { student_id: req.body.student_id } })
-    if (!wallet)
-    //wallet not found
-        return res.status(404).send("Wallet not found!")
-    var old_points = wallet.reward_point;
-    const point = old_points + (amount * ratio);
-    //wallet found & update
-    db.Wallet.update({
-        reward_point: point
-
-    }, { where: { student_id: req.body.student_id } }).then(wallet => {
-
-        res.send({ "Success : points added": true });
-
-
-    });
-};
+          //here we will add this transaction as purchase history
+          t.commit();
+    
+          res.json({
+            success: true,
+            message: "withdrawal done successfully"
+          });
+        } else{
+          res.json({
+            success: false,
+            message: "not enough balance"
+          })
+        }
+      } catch (error){
+        next(error)
+      }
+}
 
 
 //convert reward points into balance

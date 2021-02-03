@@ -2,33 +2,40 @@ const createError = require('http-errors');
 const db = require("../models");
 const Wallet = db.Wallet;
 const pointHelper=require('../helpers/points_helper')
-const {depositWithdrawSchema } = require('../helpers/validation_schema')
+const {depositWithdrawSchema } = require('../helpers/validation_schema');
+const market = require('../ApiModels/market');
 
 // const {calculatePoints,updatePoints}=require('../helpers/points_helper')
 
-//calculate reward points 
+//calculate reward points
 
 exports.purchase = async (req, res,next) => {
-
-
     try {
         const result = await depositWithdrawSchema.validateAsync(req.body);
         const wallet = await Wallet.findOne({ where: { student_id: req.params.student_id } });
         if(!wallet)
           throw createError.NotFound('Wallet Not Found');
-    
-        if(wallet.checkBalance(result.amount)) {
-            //await confirmation
-          const t = await db.sequelize.transaction();
-          //await mohemaa because js is async 
-          await wallet.withdraw(result.amount, t);
-        
-        await pointHelper.updatePoints(wallet,result.amount,t);
-            //deposit to market
 
-          //here we will add this transaction as purchase history
-          t.commit();
-    
+        if(wallet.checkBalance(result.amount)) {
+          //await confirmation
+          const t = await db.sequelize.transaction();
+          //await mohemaa because js is async
+          await wallet.withdraw(result.amount, t);
+
+          await pointHelper.updatePoints(wallet,result.amount,t);
+          //deposit to market
+          const response = market.update_balance(result.other_id, result.amount);
+          if(response?.data.success){
+              //here we will add this transaction as purchase history
+              t.commit();
+          } else {
+              res.json({
+                  success: false,
+                  message: "something went wrong!"
+              })
+              t.rollback()
+          }
+
           res.json({
             success: true,
             message: "withdrawal done successfully"
@@ -37,7 +44,7 @@ exports.purchase = async (req, res,next) => {
           res.json({
             success: false,
             message: "not enough balance"
-          })
+          });
         }
       } catch (error){
         next(error)
@@ -53,7 +60,7 @@ exports.convertPoints = async (req, res) => {
     //if we want to change ration
     const ratio = 0.1;
     //find wallet (by studentID)
-    
+
 
     const wallet = await db.Wallet.findOne({ where: { student_id: req.body.student_id } })
     if (!wallet)

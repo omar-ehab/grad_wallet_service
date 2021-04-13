@@ -8,7 +8,7 @@ const create = async (req, res, next) => {
   try {
     const result = await createWalletSchema.validateAsync(req.body);
     const wallet = await Wallet.create({
-      student_id: result.student_id
+      card_id: result.card_id
     });
 
     res.json({
@@ -21,14 +21,14 @@ const create = async (req, res, next) => {
     }
     res.json({
       success: false,
-      message: `${req.body.student_id} already exists`
+      message: `${req.body.card_id} already exists`
     })
   }
 }
 
 const getWalletByStudentId = async (req, res, next) => {
   try {
-    const wallet = await Wallet.findOne({ where: { student_id: req.params.student_id } });
+    const wallet = await Wallet.findOne({ where: { card_id: req.params.card_id } });
     if(!wallet)
       throw createError.NotFound('Wallet Not Found');
 
@@ -41,26 +41,11 @@ const getWalletByStudentId = async (req, res, next) => {
   }
 }
 
-const checkBalance = async (req, res, next) => {
-  try {
-    const result = await checkBalanceSchema.validateAsync(req.body);
-    const wallet = await Wallet.findOne({ where: { student_id: req.params.student_id } });
-    if(!wallet)
-      throw createError.NotFound('Wallet Not Found');
-
-    res.json({
-      success: true,
-      is_balance_available: wallet.available_balance >= result.balance
-    });
-  } catch (error){
-    next(error)
-  }
-}
-
-const depositBalance = async (req, res, next) => {
+const deposit = async (req, res, next) => {
   try {
     const result = await depositWithdrawSchema.validateAsync(req.body);
-    const wallet = await Wallet.findOne({ where: { student_id: req.params.student_id } });
+    //console.log(result);
+    const wallet = await Wallet.findOne({ where: { card_id: req.params.card_id } });
     if(!wallet)
       throw createError.NotFound('Wallet Not Found');
 
@@ -79,10 +64,10 @@ const depositBalance = async (req, res, next) => {
   }
 }
 
-const withdrawBalance = async (req, res, next) => {
+const withdraw = async (req, res, next) => {
   try {
     const result = await depositWithdrawSchema.validateAsync(req.body);
-    const wallet = await Wallet.findOne({ where: { student_id: req.params.student_id } });
+    const wallet = await Wallet.findOne({ where: { card_id: req.params.card_id } });
     if(!wallet)
       throw createError.NotFound('Wallet Not Found');
 
@@ -108,10 +93,39 @@ const withdrawBalance = async (req, res, next) => {
 }
 
 
+//convert reward points into balance
+////////////////////////////MOHEM////////////////////////
+//make balance & points float not an integer 3lshan al points tt7sb b7a2 rbna
+const convertPoints = async (req, res) => {
+
+  //if we want to change ration
+  const ratio = 0.1;
+  //find wallet (by studentID)
+
+
+  const wallet = await Wallet.findOne({ where: { card_id: req.params.card_id } })
+  if (!wallet)
+  //wallet not found
+      return res.status(404).send("Wallet not found!")
+
+  let oldBalance = wallet.available_balance;
+  let rewardPoints = wallet.reward_point;
+  const newBalance = oldBalance + (rewardPoints * ratio);
+
+  //wallet found & update
+  await Wallet.update({
+      reward_point: 0,
+      available_balance: newBalance
+  }, { where: { card_id: req.params.card_id } }).then(wallet => {
+      res.json({ success: true, message: "points converted" });
+  });
+};
+
+
 module.exports = {
   create,
   getWalletByStudentId,
-  checkBalance,
-  depositBalance,
-  withdrawBalance
+  deposit,
+  withdraw,
+  convertPoints
 }

@@ -21,23 +21,24 @@ module.exports = (sequelize, DataTypes) => {
   }
 
   Wallet.init({
-    student_id: {
+    card_id: {
       type: DataTypes.STRING,
+      primaryKey: true,
       allowNull: false,
       unique: true
     },
     available_balance: {
-      type: DataTypes.INTEGER.UNSIGNED,
+      type: DataTypes.FLOAT.UNSIGNED,
       defaultValue: 0,
       allowNull: false,
     },
     blocked_balance: {
-      type: DataTypes.INTEGER.UNSIGNED,
+      type: DataTypes.FLOAT.UNSIGNED,
       defaultValue: 0,
       allowNull: false,
     },
     reward_point: {
-      type: DataTypes.INTEGER.UNSIGNED,
+      type: DataTypes.FLOAT.UNSIGNED,
       defaultValue: 0,
       allowNull: false
     }

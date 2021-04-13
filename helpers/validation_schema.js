@@ -1,7 +1,7 @@
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 
 const createWalletSchema = Joi.object({
-  student_id: Joi.string().required()
+  card_id: Joi.string().required()
 });
 
 const checkBalanceSchema = Joi.object({

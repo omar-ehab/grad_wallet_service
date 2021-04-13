@@ -2,7 +2,7 @@
   "development": {
     "username": "root",
     "password": null,
-    "database": "wallet_service_db",
+    "database": "grad_wallet",
     "host": "127.0.0.1",
     "dialect": "mysql"
   },

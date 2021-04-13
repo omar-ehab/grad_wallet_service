@@ -1,14 +1,10 @@
 const axios = require('axios');
 
-const MARKET_SERVICE_DETAILS = {
-    hostname: "http://127.0.0.1",
-    port: "3000",
-    path: '/update_balance/',
-}
-
 const update_balance = async (market_id, balance) => {
     try {
-        return await axios.post(`${MARKET_SERVICE_DETAILS.hostname}:${MARKET_SERVICE_DETAILS.port}${MARKET_SERVICE_DETAILS.path}${market_id}`,{balance});
+        return await axios.post(`${process.env.APIGATEWAY_PROTOCOL}://${process.env.APIGATEWAY_HOST}:${process.env.APIGATEWAY_PORT}/markets/${market_id}/deposit`, {
+            balance
+        });
     } catch (err) {
         console.error(err.message);
     }
